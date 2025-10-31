@@ -58,6 +58,12 @@ Create a 2-3 minute video showing:
 
 Upload to YouTube or Vimeo and provide the link.
 
+## 🎥 Demo Video
+
+Watch a full demonstration of Clarity in action on YouTube:
+
+**[Click here to watch the demo video](https://youtu.be/6yTwDkzixpA?si=8cr2eSI5tzNPmaN2)**
+
 ## 🛠️ **Setup Instructions for Judges:**
 
 ### **Prerequisites:**
