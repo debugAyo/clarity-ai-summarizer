@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Clarity Summarizer</title>
+    <style>
+        :root {
+            --bg-primary: #667eea;
+            --bg-secondary: #764ba2;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-hover: rgba(255, 255, 255, 0.15);
+            --card-active: rgba(255, 255, 255, 0.25);
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --button-primary: #4CAF50;
+            --button-primary-hover: #45a049;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f4ff;
+            --bg-secondary: #e8ecff;
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(0, 0, 0, 0.1);
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --card-bg: rgba(0, 0, 0, 0.03);
+            --card-hover: rgba(0, 0, 0, 0.06);
+            --card-active: rgba(102, 126, 234, 0.2);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --button-primary: #667eea;
+            --button-primary-hover: #5568d3;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 420px;
+            min-height: 550px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Header Section */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 28px 24px;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, var(--glass-border) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.6; }
+        }
+
+        .logo-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            z-index: 1;
+        }
+
+        .logo-brain {
+            font-size: 48px;
+            animation: brainPulse 2s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px var(--shadow-color));
+            position: relative;
+            z-index: 2;
+        }
+
+        @keyframes brainPulse {
+            0%, 100% {
+                transform: scale(1) rotate(0deg);
+                filter: drop-shadow(0 4px 8px var(--shadow-color));
+            }
+            50% {
+                transform: scale(1.1) rotate(2deg);
+                filter: drop-shadow(0 6px 12px var(--shadow-color));
+            }
+        }
+
+        .logo-sparkles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .sparkle {
+            position: absolute;
+            font-size: 16px;
+            animation: sparkleFloat 3s ease-in-out infinite;
+            opacity: 0.8;
+        }
+
+        .sparkle-1 {
+            top: -8px;
+            left: 20px;
+            animation-delay: 0s;
+        }
+
+        .sparkle-2 {
+            top: 15px;
+            right: -8px;
+            animation-delay: 1s;
+        }
+
+        .sparkle-3 {
+            bottom: -5px;
+            left: 35px;
+            animation-delay: 2s;
+        }
+
+        @keyframes sparkleFloat {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg) scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-10px) rotate(180deg) scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 8px var(--shadow-color);
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--text-primary) 0%, rgba(102, 126, 234, 0.8) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            margin-bottom: 2px;
+        }
+
+        .tagline {
+            font-size: 11px;
+            opacity: 0.7;
+            position: relative;
+            z-index: 1;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--button-primary);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 10;
+            background: var(--card-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 18px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--card-hover);
+            transform: scale(1.05);
+        }
+
+        .theme-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover .theme-icon {
+            transform: rotate(20deg);
+        }
+
+        /* Content */
+        .content {
+            padding: 24px;
+        }
+
+        /* Mode Section */
+        .mode-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            opacity: 0.95;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .mode-option {
+            background: var(--card-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, var(--card-hover) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mode-option:hover {
+            background: var(--card-hover);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 24px var(--shadow-color);
+        }
+
+        .mode-option:hover::before {
+            opacity: 1;
+        }
+
+        .mode-option.active {
+            background: var(--card-active);
+            border-color: var(--button-primary);
+            box-shadow: 0 0 24px rgba(76, 175, 80, 0.4);
+            transform: scale(1.05);
+        }
+
+        .mode-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: block;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .mode-option:hover .mode-icon {
+            transform: scale(1.2) rotate(5deg);
+        }
+
+        .mode-label {
+            font-size: 13px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Level Selection */
+        .level-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .level-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: var(--card-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .level-btn:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .level-btn.active {
+            background: var(--card-active);
+            border-color: var(--button-primary);
+            box-shadow: 0 0 16px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Simplify Toggle */
+        .toggle-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .toggle-section:hover {
+            background: var(--card-hover);
+        }
+
+        .toggle-label {
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 54px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--card-bg);
+            transition: 0.4s;
+            border-radius: 34px;
+            border: 2px solid var(--glass-border);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 2px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            transition: 0.4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            border-color: #4CAF50;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+            background: linear-gradient(135deg, #ffffff 0%, #e8f5e9 100%);
+        }
+
+        /* Action Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--button-primary) 0%, var(--button-primary-hover) 100%);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(76, 175, 80, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* API Section */
+        .api-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 14px;
+            padding: 18px;
+            margin-top: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 16px var(--shadow-color);
+        }
+
+        .api-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--card-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 13px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        .api-input::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        .api-input:focus {
+            outline: none;
+            border-color: var(--button-primary);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 10px 8px;
+            background: var(--card-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-small:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .btn-get-key {
+            background: linear-gradient(135deg, #4285f4 0%, #3367d6 100%);
+            border: none;
+            color: white;
+            box-shadow: 0 3px 12px rgba(66, 133, 244, 0.4);
+        }
+
+        .btn-get-key:hover {
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.6);
+        }
+
+        /* Result Section */
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+            display: none;
+            max-height: 320px;
+            overflow-y: auto;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px var(--shadow-color);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-content {
+            line-height: 1.8;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .result-content h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .result-content ul {
+            margin: 10px 0;
+            padding-left: 24px;
+        }
+
+        .result-content li {
+            margin-bottom: 8px;
+        }
+
+        /* Export Actions */
+        .export-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .export-btn {
+            flex: 1;
+            padding: 10px 8px;
+            background: var(--card-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: var(--card-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        /* Status */
+        .status {
+            text-align: center;
+            padding: 14px;
+            margin-top: 16px;
+            font-size: 12px;
+            opacity: 0.85;
+            font-weight: 600;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--card-bg);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--card-hover);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 16px var(--shadow-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--card-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--button-primary) 0%, var(--button-primary-hover) 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text-secondary);
+            opacity: 0.9;
+        }
+
+        /* Loading Animation */
+        .loading {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            border: 4px solid var(--card-bg);
+            border-top: 4px solid var(--button-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Smooth transitions for theme switch */
+        body, .header, .mode-section, .mode-option, .level-btn, .toggle-section, .api-section, .result {
+            transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                <span class="theme-icon"></span>
+            </div>
+            <div class="logo-container">
+                <div class="logo-brain">🧠</div>
+                <div class="logo-sparkles">
+                    <span class="sparkle sparkle-1">✨</span>
+                    <span class="sparkle sparkle-2">⭐</span>
+                    <span class="sparkle sparkle-3">💡</span>
+                </div>
+            </div>
+            <div class="title">Clarity</div>
+            <div class="subtitle">Chrome AI Study Companion</div>
+            <div class="tagline">Powered by Gemini Nano</div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- Summary Mode Selection -->
+            <div class="mode-section">
+                <div class="section-title"> Summary Mode</div>
+                <div class="mode-grid">
+                    <div class="mode-option active" data-mode="quick">
+                        <span class="mode-icon">⚡</span>
+                        <div class="mode-label">Quick</div>
+                    </div>
+                    <div class="mode-option" data-mode="study">
+                        <span class="mode-icon">📚</span>
+                        <div class="mode-label">Study Guide</div>
+                    </div>
+                    <div class="mode-option" data-mode="concepts">
+                        <span class="mode-icon">🎯</span>
+                        <div class="mode-label">Key Concepts</div>
+                    </div>
+                    <div class="mode-option" data-mode="exam">
+                        <span class="mode-icon">📝</span>
+                        <div class="mode-label">Exam Prep</div>
+                    </div>
+                </div>
+
+                <div class="section-title"> Academic Level</div>
+                <div class="level-selector">
+                    <button class="level-btn active" data-level="high-school">High School</button>
+                    <button class="level-btn" data-level="undergraduate">Undergrad</button>
+                    <button class="level-btn" data-level="graduate">Graduate</button>
+                </div>
+
+                <div class="toggle-section">
+                    <span class="toggle-label"> Simplify Language</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="simplifyToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <button id="summarizeBtn" class="btn-primary">
+                 Generate with Chrome AI
+            </button>
+
+            <!-- Progress Bar -->
+            <div id="progressContainer" class="progress-container" style="display: none;">
+                <div class="progress-bar">
+                    <div id="progressBar" class="progress-fill"></div>
+                </div>
+                <div id="progressText" class="progress-text">Initializing...</div>
+            </div>
+
+            <!-- Result Area -->
+            <div id="result" class="result">
+                <div id="resultContent" class="result-content"></div>
+                <div class="export-actions">
+                    <button class="export-btn" id="copyBtn">📋 Copy</button>
+                    <button class="export-btn" id="saveBtn">💾 Save</button>
+                    <button class="export-btn" id="pdfBtn">📄 PDF</button>
+                    <button class="export-btn" id="jsonBtn">📊 JSON</button>
+                    <button class="export-btn" id="historyBtn">📚 History</button>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="status">
+                Status: <span id="apiStatus">Ready</span>
+            </div>
+
+            <!-- Study Session Tracker -->
+            <div class="study-tracker" id="studyTracker" style="display: none;">
+                <div class="tracker-header">
+                    <span>⏱️ Study Session</span>
+                    <span id="studyTimer">00:00:00</span>
+                </div>
+                <div class="tracker-controls">
+                    <button id="startStudyBtn" class="tracker-btn start">Start Session</button>
+                    <button id="pauseStudyBtn" class="tracker-btn pause" style="display: none;">Pause</button>
+                    <button id="endStudyBtn" class="tracker-btn end" style="display: none;">End Session</button>
+                </div>
+                <div id="sessionStats" class="session-stats" style="display: none;">
+                    <small>Sessions today: <span id="todaySessions">0</span> | Total time: <span id="totalTime">00:00:00</span></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
